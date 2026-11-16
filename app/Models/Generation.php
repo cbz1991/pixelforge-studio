@@ -5,12 +5,12 @@ namespace App\Models;
 use App\Enums\GenerationStatus;
 use App\Pixelforge\Quality;
 use App\Pixelforge\Size;
+use Carbon\CarbonImmutable;
 use Database\Factories\GenerationFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -29,15 +29,15 @@ use Illuminate\Support\Carbon;
  * @property int|null $provider_cost nanodollars
  * @property int|null $price nanodollars
  * @property string|null $image_url
- * @property Carbon|null $image_url_expires_at
+ * @property CarbonImmutable|null $image_url_expires_at
  * @property string|null $error_code
  * @property string|null $error_message
  * @property int $submit_attempts
- * @property Carbon|null $submitted_at
- * @property Carbon|null $started_at
- * @property Carbon|null $completed_at
- * @property Carbon $created_at
- * @property Carbon $updated_at
+ * @property CarbonImmutable|null $submitted_at
+ * @property CarbonImmutable|null $started_at
+ * @property CarbonImmutable|null $completed_at
+ * @property CarbonImmutable $created_at
+ * @property CarbonImmutable $updated_at
  * @property-read User $user
  */
 class Generation extends Model
