@@ -30,11 +30,11 @@ class GenerationFactory extends Factory
         ];
     }
 
-    public function queued(string $pixelforgeId = 'gen_test'): static
+    public function queued(?string $pixelforgeId = null): static
     {
         return $this->state(fn () => [
             'status' => GenerationStatus::Queued,
-            'pixelforge_id' => $pixelforgeId,
+            'pixelforge_id' => $pixelforgeId ?? 'gen_'.Str::lower(Str::random(20)),
             'submitted_at' => now(),
             'rates' => [
                 'input_text_tokens' => '5.00',

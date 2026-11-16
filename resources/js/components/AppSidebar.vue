@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
-import { Sparkles } from '@lucide/vue';
+import { Link, usePage } from '@inertiajs/vue3';
+import { ChartColumn, Sparkles } from '@lucide/vue';
+import { computed } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
@@ -14,15 +15,17 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import { report } from '@/routes/admin';
 import type { NavItem } from '@/types';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Studio',
-        href: dashboard(),
-        icon: Sparkles,
-    },
-];
+const page = usePage();
+
+const mainNavItems = computed<NavItem[]>(() => [
+    { title: 'Studio', href: dashboard(), icon: Sparkles },
+    ...(page.props.auth.user?.is_admin
+        ? [{ title: 'Spend report', href: report(), icon: ChartColumn }]
+        : []),
+]);
 </script>
 
 <template>

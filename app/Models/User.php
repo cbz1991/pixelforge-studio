@@ -22,6 +22,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property Carbon|null $email_verified_at
  * @property string $password
  * @property int $balance nanodollars; the sum of the user's credit transactions
+ * @property bool $is_admin operators who can see the spend report
  * @property string|null $two_factor_secret
  * @property string|null $two_factor_recovery_codes
  * @property Carbon|null $two_factor_confirmed_at
@@ -37,6 +38,12 @@ class User extends Authenticatable implements PasskeyUser
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
 
+    /** Match the column defaults, so a freshly created user isn't missing them. */
+    protected $attributes = [
+        'balance' => 0,
+        'is_admin' => false,
+    ];
+
     /**
      * Get the attributes that should be cast.
      *
@@ -48,6 +55,7 @@ class User extends Authenticatable implements PasskeyUser
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'balance' => 'integer',
+            'is_admin' => 'boolean',
             'two_factor_confirmed_at' => 'datetime',
         ];
     }

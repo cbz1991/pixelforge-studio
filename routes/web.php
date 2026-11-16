@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminReportController;
 use App\Http\Controllers\CreditPurchaseController;
 use App\Http\Controllers\GenerationController;
 use Illuminate\Support\Facades\Route;
@@ -14,6 +15,10 @@ Route::middleware('auth')->group(function () {
     Route::post('credits', CreditPurchaseController::class)
         ->middleware('throttle:10,1')
         ->name('credits.purchase');
+
+    Route::get('admin/report', AdminReportController::class)
+        ->middleware('can:view-admin-report')
+        ->name('admin.report');
 });
 
 require __DIR__.'/settings.php';
