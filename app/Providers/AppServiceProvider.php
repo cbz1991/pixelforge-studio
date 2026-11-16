@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Billing\CostCalculator;
 use App\Pixelforge\PixelforgeClient;
+use App\Pixelforge\WebhookSignature;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -25,6 +26,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(PixelforgeClient::class, fn (): PixelforgeClient => new PixelforgeClient(
             (string) config('services.pixelforge.base_url'),
             config('services.pixelforge.api_key'),
+        ));
+
+        $this->app->bind(WebhookSignature::class, fn (): WebhookSignature => new WebhookSignature(
+            (string) config('services.pixelforge.webhook_secret'),
+            (int) config('services.pixelforge.webhook_tolerance'),
         ));
     }
 
