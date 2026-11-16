@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Billing\CostCalculator;
+use App\Pixelforge\PixelforgeClient;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -20,6 +21,11 @@ class AppServiceProvider extends ServiceProvider
             CostCalculator::class,
             fn (): CostCalculator => new CostCalculator((int) config('billing.markup_percent')),
         );
+
+        $this->app->singleton(PixelforgeClient::class, fn (): PixelforgeClient => new PixelforgeClient(
+            (string) config('services.pixelforge.base_url'),
+            config('services.pixelforge.api_key'),
+        ));
     }
 
     /**
