@@ -3,6 +3,7 @@
 namespace App\Actions\Generations;
 
 use App\Billing\CostCalculator;
+use App\Billing\CreditLedger;
 use App\Enums\GenerationStatus;
 use App\Models\Generation;
 use App\Pixelforge\Rates;
@@ -21,7 +22,10 @@ use Illuminate\Support\Facades\Log;
  */
 class ApplyPixelforgeUpdate
 {
-    public function __construct(private readonly CostCalculator $calculator) {}
+    public function __construct(
+        private readonly CostCalculator $calculator,
+        private readonly CreditLedger $ledger,
+    ) {}
 
     /**
      * @param  array<string, mixed>  $object  a Pixelforge generation object
@@ -112,6 +116,9 @@ class ApplyPixelforgeUpdate
         }
 
         $generation->save();
+
+        // Same transaction as the status change: credits move exactly when it becomes final.
+        $this->ledger->settle($generation);
     }
 
     /** @param array<string, mixed> $object */

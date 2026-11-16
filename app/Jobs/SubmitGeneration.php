@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Actions\Generations\ApplyPixelforgeUpdate;
+use App\Billing\CreditLedger;
 use App\Enums\GenerationStatus;
 use App\Models\Generation;
 use App\Pixelforge\PixelforgeClient;
@@ -11,6 +12,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\DB;
 use Throwable;
 
 /**
@@ -130,18 +132,25 @@ class SubmitGeneration implements ShouldQueue
 
     private function giveUp(Generation $generation, string $code, string $message): void
     {
-        Generation::query()
-            ->whereKey($generation->getKey())
-            ->where('status', GenerationStatus::Pending)
-            ->update([
+        DB::transaction(function () use ($generation, $code, $message): void {
+            $locked = Generation::query()->whereKey($generation->id)->lockForUpdate()->first();
+
+            // A webhook may have moved it on meanwhile; then Pixelforge has it and we don't interfere.
+            if ($locked?->status !== GenerationStatus::Pending) {
+                return;
+            }
+
+            $locked->update([
                 'status' => GenerationStatus::Failed,
                 'error_code' => $code,
                 'error_message' => $message,
                 'provider_cost' => 0,
                 'price' => 0,
                 'completed_at' => Date::now(),
-                'updated_at' => Date::now(),
             ]);
+
+            app(CreditLedger::class)->settle($locked);
+        });
     }
 
     /** A message the user can act on. */

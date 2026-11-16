@@ -24,6 +24,15 @@ final class Nanodollars
         return (int) bcmul($dollars, (string) self::PER_DOLLAR, 0);
     }
 
+    /** 46125000 -> "$0.046125", keeping every significant digit (at least cents). */
+    public static function formatUsd(int $nanodollars): string
+    {
+        [$dollars, $fraction] = explode('.', self::toDecimal(abs($nanodollars)));
+        $fraction = str_pad(rtrim($fraction, '0'), 2, '0');
+
+        return ($nanodollars < 0 ? '-' : '').'$'.number_format((int) $dollars).'.'.$fraction;
+    }
+
     /** 46125000 -> "0.046125000" */
     public static function toDecimal(int $nanodollars): string
     {

@@ -13,7 +13,11 @@ import { cn } from '@/lib/utils';
 import { store } from '@/routes/generations';
 import type { Pricing, Quality, Size } from '@/types';
 
-const props = defineProps<{ pricing: Pricing | null }>();
+const props = defineProps<{
+    pricing: Pricing | null;
+    /** Nanodollars. */
+    balance: number;
+}>();
 
 const MAX_PROMPT = 4000;
 const MAX_REFERENCES = 4;
@@ -61,6 +65,11 @@ const cost = computed(() => {
         references.length,
     );
 });
+
+// We hold the worst case while it runs, so that's what the balance must cover.
+const cannotAfford = computed(
+    () => cost.value !== null && cost.value.maximum > props.balance,
+);
 
 function addKeyword(keyword: string): void {
     draft.prompt = `${draft.prompt.trimEnd()} ${keyword}`.trimStart();
@@ -200,9 +209,16 @@ function optionClasses(selected: boolean): string {
                             }}
                         </span>
                     </p>
-                    <p class="text-xs text-muted-foreground">
-                        You pay the exact cost once it finishes. Failed
-                        generations are free.
+                    <p
+                        v-if="cannotAfford"
+                        class="text-xs text-red-600 dark:text-red-400"
+                    >
+                        Your balance of {{ formatUsd(balance) }} doesn't cover
+                        the maximum. Buy credits above to continue.
+                    </p>
+                    <p v-else class="text-xs text-muted-foreground">
+                        We set the maximum aside while it runs, then charge the
+                        exact cost. Failed generations are free.
                     </p>
                 </template>
                 <p
@@ -215,11 +231,12 @@ function optionClasses(selected: boolean): string {
                 <p v-else class="text-muted-foreground">
                     Write a prompt to see what it will cost.
                 </p>
+                <InputError :message="errors.credits" />
             </div>
 
             <Button
                 type="submit"
-                :disabled="draft.processing || !pricing"
+                :disabled="draft.processing || !pricing || cannotAfford"
                 class="shrink-0"
             >
                 <Spinner v-if="draft.processing" />

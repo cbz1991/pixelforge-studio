@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Generations\StartGeneration;
+use App\Billing\InsufficientCredits;
+use App\Billing\Nanodollars;
 use App\Http\Requests\StoreGenerationRequest;
 use App\Http\Resources\GenerationResource;
 use App\Pixelforge\PixelforgeException;
@@ -22,6 +24,8 @@ class GenerationController extends Controller
             'generations' => GenerationResource::collection($generations),
             // Only needed for the up-front estimate, so skip it when just polling statuses.
             'pricing' => fn () => $this->pricing($pricing),
+            'balance' => $request->user()->balance,
+            'creditPacks' => CreditPurchaseController::PACKS,
         ]);
     }
 
@@ -37,6 +41,12 @@ class GenerationController extends Controller
             );
         } catch (PixelforgeException) {
             return back()->withErrors(['prompt' => 'Pixelforge pricing is unavailable right now, so we can\'t price this generation. Please try again shortly.']);
+        } catch (InsufficientCredits $e) {
+            return back()->withErrors(['credits' => sprintf(
+                'This generation can cost up to %s and your balance is %s. Buy credits to continue.',
+                Nanodollars::formatUsd($e->required),
+                Nanodollars::formatUsd($e->balance),
+            )]);
         }
 
         return to_route('dashboard');

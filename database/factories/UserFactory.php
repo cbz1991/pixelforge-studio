@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Billing\CreditLedger;
+use App\Billing\Nanodollars;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -34,6 +36,17 @@ class UserFactory extends Factory
             'two_factor_recovery_codes' => null,
             'two_factor_confirmed_at' => null,
         ];
+    }
+
+    /**
+     * Give the user credits, recorded in the ledger like a real purchase.
+     */
+    public function withCredits(int $dollars = 10): static
+    {
+        return $this->afterCreating(function (User $user) use ($dollars): void {
+            app(CreditLedger::class)->purchase($user, $dollars * Nanodollars::PER_DOLLAR);
+            $user->refresh();
+        });
     }
 
     /**

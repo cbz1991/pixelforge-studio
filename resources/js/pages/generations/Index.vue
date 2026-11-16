@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, usePoll } from '@inertiajs/vue3';
 import { computed, watch } from 'vue';
+import BalanceCard from '@/components/generations/BalanceCard.vue';
 import GenerationCard from '@/components/generations/GenerationCard.vue';
 import GenerationForm from '@/components/generations/GenerationForm.vue';
 import Heading from '@/components/Heading.vue';
@@ -11,6 +12,8 @@ import type { Generation, Paginated, Pricing } from '@/types';
 const props = defineProps<{
     generations: Paginated<Generation>;
     pricing: Pricing | null;
+    balance: number;
+    creditPacks: number[];
 }>();
 
 defineOptions({
@@ -28,7 +31,7 @@ const hasUnfinished = computed(() =>
 // Refresh statuses while anything is still running; stop once all are final.
 const { start, stop } = usePoll(
     2000,
-    { only: ['generations'] },
+    { only: ['generations', 'balance'] },
     { autoStart: false },
 );
 
@@ -46,7 +49,10 @@ watch(hasUnfinished, (running) => (running ? start() : stop()), {
                 title="Generate an image"
                 description="Describe what you want. You'll see the estimated cost before you submit."
             />
-            <GenerationForm :pricing="pricing" />
+            <div class="flex flex-col gap-4">
+                <BalanceCard :balance="balance" :packs="creditPacks" />
+                <GenerationForm :pricing="pricing" :balance="balance" />
+            </div>
         </section>
 
         <section>

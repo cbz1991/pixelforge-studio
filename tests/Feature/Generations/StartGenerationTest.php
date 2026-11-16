@@ -18,7 +18,7 @@ it('saves the generation with its estimate and queues the submission', function 
     Http::fake(['*/pricing' => Http::response(pricingTable()->toArray())]);
 
     $generation = app(StartGeneration::class)(
-        User::factory()->create(),
+        User::factory()->withCredits()->create(),
         str_repeat('a', 400),
         Size::Landscape,
         Quality::High,

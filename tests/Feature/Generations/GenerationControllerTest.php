@@ -39,7 +39,7 @@ it('shows the user their own generations and the pricing', function () {
 });
 
 it('starts a generation', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->withCredits()->create();
 
     $this->actingAs($user)->post(route('generations.store'), [
         'prompt' => '  A lighthouse at dawn  ',
@@ -56,7 +56,7 @@ it('starts a generation', function () {
 });
 
 it('validates the request like Pixelforge would', function (array $input, string $error) {
-    $this->actingAs(User::factory()->create())
+    $this->actingAs(User::factory()->withCredits()->create())
         ->post(route('generations.store'), [...['prompt' => 'A cat', 'size' => '1024x1024', 'quality' => 'low'], ...$input])
         ->assertSessionHasErrors($error);
 
@@ -75,7 +75,7 @@ it('explains when pricing is unavailable', function () {
         ->shouldReceive('current')
         ->andThrow(new PixelforgeException('overloaded', 'Busy', 503));
 
-    $this->actingAs(User::factory()->create())
+    $this->actingAs(User::factory()->withCredits()->create())
         ->post(route('generations.store'), ['prompt' => 'A cat', 'size' => '1024x1024', 'quality' => 'low'])
         ->assertSessionHasErrors('prompt');
 
@@ -94,4 +94,31 @@ it('hides image links once they have expired', function () {
         ->assertInertia(fn (Assert $page) => $page
             ->where('generations.data.0.image_url', null)
             ->where('generations.data.0.image_expired', true));
+});
+
+it('refuses to start a generation the user cannot afford', function () {
+    $user = User::factory()->create(); // balance $0
+
+    $this->actingAs($user)
+        ->post(route('generations.store'), ['prompt' => 'A cat', 'size' => '1024x1024', 'quality' => 'low'])
+        ->assertSessionHasErrors('credits');
+
+    expect($user->generations()->count())->toBe(0);
+    Queue::assertNothingPushed();
+});
+
+it('sells credit packs', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->post(route('credits.purchase'), ['dollars' => 10])->assertRedirect();
+
+    expect($user->refresh()->balance)->toBe(10_000_000_000);
+});
+
+it('only sells the listed packs', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->post(route('credits.purchase'), ['dollars' => 1_000_000])->assertSessionHasErrors('dollars');
+
+    expect($user->refresh()->balance)->toBe(0);
 });
