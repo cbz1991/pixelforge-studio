@@ -20,5 +20,3 @@ Route::middleware('auth')->group(function () {
         ->middleware('can:view-admin-report')
         ->name('admin.report');
 });
-
-require __DIR__.'/settings.php';
