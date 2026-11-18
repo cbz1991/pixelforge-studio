@@ -93,7 +93,8 @@ it('gives up after a few transient failures', function () {
     runSubmission($generation);
 
     expect($generation->refresh()->status)->toBe(GenerationStatus::Failed)
-        ->and($generation->price)->toBe(0);
+        ->and($generation->price)->toBe(0)
+        ->and($generation->error_message)->toBe('Pixelforge was overloaded on all 5 attempts, so we stopped retrying. You weren\'t charged; please try again later.');
 });
 
 it('waits for a concurrency slot without using up attempts', function () {

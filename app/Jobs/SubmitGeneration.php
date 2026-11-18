@@ -107,7 +107,7 @@ class SubmitGeneration implements ShouldQueue
             $generation->increment('submit_attempts');
 
             if ($generation->submit_attempts >= self::MAX_ATTEMPTS) {
-                $this->giveUp($generation, $e->errorCode, 'Pixelforge kept failing, so we stopped retrying. You weren\'t charged.');
+                $this->giveUp($generation, $e->errorCode, $this->explainGivingUp($e));
 
                 return;
             }
@@ -151,6 +151,19 @@ class SubmitGeneration implements ShouldQueue
 
             app(CreditLedger::class)->settle($locked);
         });
+    }
+
+    /** Why we stopped retrying, in terms of what kept going wrong. */
+    private function explainGivingUp(PixelforgeException $e): string
+    {
+        $reason = match ($e->errorCode) {
+            'overloaded', 'server_error' => 'Pixelforge was overloaded',
+            'rate_limit_exceeded' => 'Pixelforge kept rate limiting us',
+            'connection_failed' => 'We couldn\'t reach Pixelforge',
+            default => 'Pixelforge kept failing',
+        };
+
+        return sprintf('%s on all %d attempts, so we stopped retrying. You weren\'t charged; please try again later.', $reason, self::MAX_ATTEMPTS);
     }
 
     /** A message the user can act on. */
