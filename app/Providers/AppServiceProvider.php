@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Pixelforge\PixelforgeClient;
 use App\Pixelforge\WebhookSignature;
 use Carbon\CarbonImmutable;
+use Illuminate\Foundation\DevCommands;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -44,6 +45,9 @@ class AppServiceProvider extends ServiceProvider
         $this->configureDefaults();
 
         Gate::define('view-admin-report', fn (User $user): bool => $user->is_admin);
+
+        // `composer run dev` also runs the scheduler, so missed webhooks get polled locally too.
+        DevCommands::artisan('schedule:work', 'scheduler');
     }
 
     /**
