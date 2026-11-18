@@ -110,7 +110,7 @@ The brief left some details open on purpose. Here is what I chose and why.
 
 ### The report
 
-- **Days are the UTC day a generation completed**, because that's the day Pixelforge bills it on. This is what makes our provider cost match `/v1/usage` exactly. Each day shows ✓ Exact or the difference to the nanodollar.
+- **Days are the UTC day a generation completed**, because that's the day Pixelforge bills it on, and the database connection is pinned to UTC whatever the server's timezone. This is what makes our provider cost match `/v1/usage` exactly. Each day shows ✓ Exact or the difference to the nanodollar.
 - Use one Pixelforge API key per environment: `/v1/usage` is per key, so production numbers only reconcile if only production uses that key.
 
 ### Smaller choices

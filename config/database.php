@@ -59,6 +59,9 @@ return [
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
+            // Talk to MySQL in UTC whatever the server's own timezone is. Pixelforge bills
+            // by UTC day, and the spend report groups with DATE(completed_at) in SQL.
+            'timezone' => '+00:00',
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],

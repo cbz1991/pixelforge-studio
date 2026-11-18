@@ -4,6 +4,7 @@ use App\Enums\GenerationStatus;
 use App\Models\Generation;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -111,4 +112,8 @@ it('makes a user an admin from the command line', function () {
 
     $this->artisan('users:make-admin', ['email' => 'ops@example.com', '--revoke' => true])->assertSuccessful();
     expect($user->refresh()->is_admin)->toBeFalse();
+});
+
+it('talks to the database in UTC, so DATE() matches Pixelforge billing days', function () {
+    expect(DB::selectOne('select @@session.time_zone as tz')->tz)->toBe('+00:00');
 });
